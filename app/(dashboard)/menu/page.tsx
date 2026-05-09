@@ -29,7 +29,7 @@ export default async function MenuPage() {
   if (error) console.error("[MenuPage] fetch error", error);
 
   return (
-    <div className="p-6 max-w-2xl space-y-6">
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

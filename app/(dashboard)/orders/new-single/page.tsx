@@ -32,7 +32,7 @@ export default async function NewSingleOrderPage() {
   if (error) console.error("[NewSingleOrderPage] menu fetch error", error);
 
   return (
-    <div className="p-6 max-w-2xl space-y-6">
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
