@@ -32,8 +32,8 @@ export default async function NewSingleOrderPage() {
   if (error) console.error("[NewSingleOrderPage] menu fetch error", error);
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="p-6 space-y-6">
+      {/* Header — full width */}
       <div className="flex items-center gap-3">
         <Link
           href="/orders"
@@ -49,7 +49,9 @@ export default async function NewSingleOrderPage() {
         </div>
       </div>
 
-      <NewSingleOrderForm menuItems={menuItems ?? []} />
+      <div className="max-w-2xl mx-auto">
+        <NewSingleOrderForm menuItems={menuItems ?? []} />
+      </div>
     </div>
   );
 }

@@ -29,8 +29,8 @@ export default async function MenuPage() {
   if (error) console.error("[MenuPage] fetch error", error);
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="p-6 space-y-6">
+      {/* Header — full width */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Menu</h1>
@@ -49,7 +49,9 @@ export default async function MenuPage() {
       </div>
 
       {/* Grid grouped by category */}
-      <MenuItemsClient items={items ?? []} />
+      <div className="max-w-2xl mx-auto">
+        <MenuItemsClient items={items ?? []} />
+      </div>
     </div>
   );
 }

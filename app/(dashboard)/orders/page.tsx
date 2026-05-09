@@ -22,8 +22,8 @@ export default async function OrdersPage() {
   const canPlaceOrder = ["admin", "staff"].includes(profile.role);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      {/* Header */}
+    <div className="p-6 space-y-6">
+      {/* Header — full width */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Orders</h1>
@@ -53,7 +53,7 @@ export default async function OrdersPage() {
       </div>
 
       {/* Placeholder — full list built in Phase 8 */}
-      <div className="rounded-xl border border-dashed border-border px-6 py-16 text-center">
+      <div className="max-w-4xl mx-auto rounded-xl border border-dashed border-border px-6 py-16 text-center">
         <p className="text-sm font-medium text-foreground">Order list coming in Phase 8</p>
         <p className="text-xs text-muted-foreground mt-1">
           Use the buttons above to place orders. Orders appear on the chef dashboard immediately.
