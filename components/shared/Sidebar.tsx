@@ -106,7 +106,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-foreground/10 text-foreground"
+                  ? "bg-foreground/10 text-foreground dark:bg-card dark:[box-shadow:0_0_0_0.2px_var(--sidebar-border)]"
                   : "text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
               )}
             >
