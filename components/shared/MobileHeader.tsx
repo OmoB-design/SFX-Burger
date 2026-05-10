@@ -9,7 +9,26 @@ export function MobileHeader() {
   const { openMobile, setOpenMobile } = useSidebar();
 
   return (
-    <div className="sm:hidden sticky top-0 z-20 h-10 flex items-center gap-3 px-4 bg-sidebar border-b border-sidebar-border print:hidden">
+    <div className="sm:hidden sticky top-0 z-20 h-[60px] flex items-center justify-between px-4 bg-sidebar border-b border-sidebar-border print:hidden">
+
+      {/* Logo + wordmark */}
+      <div className="flex items-center gap-2">
+        <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-background border border-sidebar-border overflow-hidden flex-shrink-0">
+          <Image
+            src="/logo-primary.svg"
+            alt="SFx Burger"
+            width={20}
+            height={20}
+            priority
+          />
+        </div>
+        <span className="text-sm font-semibold text-foreground tracking-tight leading-none">
+          SFx Burger
+        </span>
+        <span className="text-[10px] font-mono text-muted-foreground leading-none mt-px">
+          OMS
+        </span>
+      </div>
 
       {/* Hamburger — morphs into X when drawer is open */}
       <button
@@ -38,25 +57,6 @@ export function MobileHeader() {
           )}
         />
       </button>
-
-      {/* Logo + wordmark */}
-      <div className="flex items-center gap-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-[5px] bg-background border border-sidebar-border overflow-hidden flex-shrink-0">
-          <Image
-            src="/logo-primary.svg"
-            alt="SFx Burger"
-            width={20}
-            height={20}
-            priority
-          />
-        </div>
-        <span className="text-sm font-semibold text-foreground tracking-tight leading-none">
-          SFx Burger
-        </span>
-        <span className="text-[10px] font-mono text-muted-foreground leading-none mt-px">
-          OMS
-        </span>
-      </div>
 
     </div>
   );
