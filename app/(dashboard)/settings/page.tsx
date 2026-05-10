@@ -27,11 +27,15 @@ export default async function SettingsPage() {
   const role = profile.role;
 
   return (
-    <div className="p-6 max-w-xl space-y-6">
-      <div>
+    <div>
+      {/* Sticky header with bottom stroke */}
+      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 py-5">
         <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">Your account details</p>
       </div>
+
+      {/* Content — 100px below header */}
+      <div className="px-6 pt-[100px] pb-6 max-w-xl space-y-6">
 
       <Card>
         <CardHeader className="pb-3">
@@ -70,6 +74,7 @@ export default async function SettingsPage() {
       <p className="text-xs text-muted-foreground">
         To update your name or password, contact your administrator.
       </p>
+      </div>
     </div>
   );
 }

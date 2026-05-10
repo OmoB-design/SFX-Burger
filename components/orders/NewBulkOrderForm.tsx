@@ -1,10 +1,11 @@
 "use client";
 
 import { useReducer, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { nextSaturday, format } from "date-fns";
 import {
   Minus,
   Plus,
@@ -15,14 +16,16 @@ import {
   Phone,
   User,
   FileText,
+  CalendarDays,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { placeSingleOrderAction } from "@/lib/actions/orders";
-import { customerInfoSchema, type CustomerInfoValues } from "@/lib/schemas/order";
+import { DatePicker } from "@/components/ui/date-picker";
+import { placeBulkOrderAction } from "@/lib/actions/orders";
+import { bulkCustomerInfoSchema, type BulkCustomerInfoValues } from "@/lib/schemas/order";
 import { CATEGORY_META, type CartItem, type MenuItem, type MenuCategory } from "@/types/domain";
 import { cn } from "@/lib/utils";
 
@@ -76,13 +79,13 @@ const CATEGORY_ORDER: MenuCategory[] = ["burgers", "shawarma", "soups", "rice", 
 
 // ── Props ──────────────────────────────────────────────────────────────
 
-interface NewSingleOrderFormProps {
+interface NewBulkOrderFormProps {
   menuItems: MenuItem[];
 }
 
 // ── Component ──────────────────────────────────────────────────────────
 
-export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
+export function NewBulkOrderForm({ menuItems }: NewBulkOrderFormProps) {
   const router = useRouter();
   const [cart, dispatch] = useReducer(cartReducer, []);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,12 +95,14 @@ export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors },
-  } = useForm<CustomerInfoValues>({
-    resolver: zodResolver(customerInfoSchema),
+  } = useForm<BulkCustomerInfoValues>({
+    resolver: zodResolver(bulkCustomerInfoSchema),
     defaultValues: {
       customer_name: "",
       customer_phone: "",
+      scheduled_date: format(nextSaturday(new Date()), "yyyy-MM-dd"),
       fulfillment_type: "pickup",
       delivery_address: "",
       notes: "",
@@ -113,28 +118,28 @@ export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
     (m) => m.category === activeCategory && m.is_active
   );
 
-  async function onSubmit(data: CustomerInfoValues) {
+  async function onSubmit(data: BulkCustomerInfoValues) {
     if (cart.length === 0) {
       toast.error("Add at least one item to the order");
       return;
     }
     setIsSubmitting(true);
-    const result = await placeSingleOrderAction({ ...data, cart });
+    const result = await placeBulkOrderAction({ ...data, cart });
     setIsSubmitting(false);
 
     if (result.error) {
       toast.error(result.error);
     } else {
-      toast.success("Order placed — opening receipt");
+      toast.success("Bulk order placed — opening receipt");
       router.push(`/orders/${result.orderId}/receipt`);
     }
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      {/* ── Customer Info ──────────────────────────────────────────── */}
+      {/* ── Customer & Schedule ────────────────────────────────── */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-4">
-        <h2 className="text-sm font-semibold text-foreground">Customer</h2>
+        <h2 className="text-sm font-semibold text-foreground">Customer & Schedule</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Name */}
@@ -167,6 +172,31 @@ export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
               {...register("customer_phone")}
             />
           </div>
+        </div>
+
+        {/* Scheduled date — PRD §2: defaults to next Saturday */}
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5">
+            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+            Scheduled date <span className="text-destructive">*</span>
+          </Label>
+          <Controller
+            name="scheduled_date"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                value={field.value}
+                onChange={field.onChange}
+                defaultMonth={nextSaturday(new Date())}
+              />
+            )}
+          />
+          {errors.scheduled_date && (
+            <p className="text-xs text-destructive">{errors.scheduled_date.message}</p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Defaults to the next Saturday. Change only for special arrangements.
+          </p>
         </div>
 
         {/* Fulfillment toggle */}
@@ -215,7 +245,7 @@ export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
         )}
       </section>
 
-      {/* ── Menu Picker ────────────────────────────────────────────── */}
+      {/* ── Menu Picker ────────────────────────────────────────── */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-4">
         <h2 className="text-sm font-semibold text-foreground">Menu</h2>
 
@@ -301,7 +331,7 @@ export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
         )}
       </section>
 
-      {/* ── Cart ───────────────────────────────────────────────────── */}
+      {/* ── Cart ───────────────────────────────────────────────── */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -375,7 +405,7 @@ export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
         )}
       </section>
 
-      {/* ── Notes ──────────────────────────────────────────────────── */}
+      {/* ── Notes ──────────────────────────────────────────────── */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-3">
         <Label htmlFor="notes" className="flex items-center gap-1.5 text-sm font-semibold">
           <FileText className="h-3.5 w-3.5 text-muted-foreground" />
@@ -390,14 +420,14 @@ export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
         />
       </section>
 
-      {/* ── Submit ─────────────────────────────────────────────────── */}
+      {/* ── Submit ─────────────────────────────────────────────── */}
       <Button
         type="submit"
         disabled={isSubmitting}
         className="w-full bg-sfx-red hover:bg-sfx-red/90 text-white h-11 text-sm font-semibold"
       >
         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isSubmitting ? "Placing order…" : "Place order"}
+        {isSubmitting ? "Placing order…" : "Place bulk order"}
       </Button>
     </form>
   );

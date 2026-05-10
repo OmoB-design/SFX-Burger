@@ -66,11 +66,11 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
     .toUpperCase();
 
   return (
-    <aside className="flex h-screen w-[280px] flex-col border-r border-sidebar-border bg-sidebar">
+    <aside className="flex h-screen w-[280px] flex-col border-r border-sidebar-border bg-sidebar print:hidden">
 
       {/* Logo — framed card */}
       <div className="px-3 pt-3 pb-2 border-b border-sidebar-border">
-        <div className="flex items-center gap-3 rounded-2xl bg-background border-[0.5px] border-sidebar-border px-4 py-3">
+        <div className="flex items-center gap-3 rounded-2xl bg-background border-[0.5px] border-sidebar-border px-3 py-2.5">
           <Image
             src="/logo-primary.svg"
             alt="SFx Burger"
@@ -106,7 +106,7 @@ export function Sidebar({ role, fullName, email }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-foreground/10 text-foreground dark:bg-card dark:[box-shadow:0_0_0_0.2px_var(--sidebar-border)]"
+                  ? "bg-background text-foreground [box-shadow:0_0_0_0.2px_var(--sidebar-border)]"
                   : "text-muted-foreground hover:bg-foreground/[0.06] hover:text-foreground"
               )}
             >

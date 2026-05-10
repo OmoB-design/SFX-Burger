@@ -29,9 +29,9 @@ export default async function MenuPage() {
   if (error) console.error("[MenuPage] fetch error", error);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header — full width */}
-      <div className="flex items-start justify-between">
+    <div>
+      {/* Sticky header with bottom stroke */}
+      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 py-5 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Menu</h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -48,9 +48,11 @@ export default async function MenuPage() {
         />
       </div>
 
-      {/* Grid grouped by category */}
-      <div className="max-w-2xl mx-auto">
-        <MenuItemsClient items={items ?? []} />
+      {/* Content — 100px below header */}
+      <div className="px-6 pt-[100px] pb-6">
+        <div className="max-w-2xl mx-auto">
+          <MenuItemsClient items={items ?? []} />
+        </div>
       </div>
     </div>
   );

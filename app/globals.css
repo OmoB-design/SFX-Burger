@@ -206,3 +206,21 @@
     text-wrap: balance;
   }
 }
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Chef dashboard — new-order attention flash */
+@keyframes chef-new-flash {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklch, var(--sfx-amber) 0%, transparent); }
+  20%  { box-shadow: 0 0 0 4px color-mix(in oklch, var(--sfx-amber) 55%, transparent); }
+  60%  { box-shadow: 0 0 0 4px color-mix(in oklch, var(--sfx-amber) 55%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--sfx-amber) 0%, transparent); }
+}
+.chef-ticket-flash {
+  animation: chef-new-flash 2s ease-in-out 1;
+}

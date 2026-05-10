@@ -32,9 +32,9 @@ export default async function NewSingleOrderPage() {
   if (error) console.error("[NewSingleOrderPage] menu fetch error", error);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header — full width */}
-      <div className="flex items-center gap-3">
+    <div>
+      {/* Sticky header with bottom stroke */}
+      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 py-5 flex items-center gap-3">
         <Link
           href="/orders"
           className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -49,8 +49,11 @@ export default async function NewSingleOrderPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto">
-        <NewSingleOrderForm menuItems={menuItems ?? []} />
+      {/* Content — 100px below header */}
+      <div className="px-6 pt-[100px] pb-6">
+        <div className="max-w-2xl mx-auto">
+          <NewSingleOrderForm menuItems={menuItems ?? []} />
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,9 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { buttonVariants } from "@/components/ui/button";
+import { OrdersTable } from "@/components/orders/OrdersTable";
+import type { Order } from "@/types/domain";
+import type { OrderRow, OrderItemRow } from "@/types/database.types";
 
 export default async function OrdersPage() {
   const supabase = await createClient();
@@ -21,14 +24,42 @@ export default async function OrdersPage() {
 
   const canPlaceOrder = ["admin", "staff"].includes(profile.role);
 
+  // Fetch all orders, newest first
+  const { data: ordersData, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) console.error("[OrdersPage] fetch error", error);
+
+  const orderRows = (ordersData as OrderRow[]) ?? [];
+
+  // Batch-fetch all items in one query
+  const orderIds = orderRows.map((o) => o.id);
+  const { data: itemsData } = orderIds.length > 0
+    ? await supabase.from("order_items").select("*").in("order_id", orderIds)
+    : { data: [] };
+
+  const itemsByOrder = new Map<string, OrderItemRow[]>();
+  ((itemsData as OrderItemRow[]) ?? []).forEach((item) => {
+    const list = itemsByOrder.get(item.order_id) ?? [];
+    list.push(item);
+    itemsByOrder.set(item.order_id, list);
+  });
+
+  const seedOrders: Order[] = orderRows.map((row) => ({
+    ...row,
+    items: itemsByOrder.get(row.id) ?? [],
+  }));
+
   return (
-    <div className="p-6 space-y-6">
-      {/* Header — full width */}
-      <div className="flex items-start justify-between">
+    <div>
+      {/* Sticky header */}
+      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 py-5 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Orders</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage and track all orders
+            {seedOrders.length} order{seedOrders.length !== 1 ? "s" : ""} total
           </p>
         </div>
 
@@ -52,13 +83,7 @@ export default async function OrdersPage() {
         )}
       </div>
 
-      {/* Placeholder — full list built in Phase 8 */}
-      <div className="max-w-4xl mx-auto rounded-xl border border-dashed border-border px-6 py-16 text-center">
-        <p className="text-sm font-medium text-foreground">Order list coming in Phase 8</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Use the buttons above to place orders. Orders appear on the chef dashboard immediately.
-        </p>
-      </div>
+      <OrdersTable seedOrders={seedOrders} userRole={profile.role} />
     </div>
   );
 }
