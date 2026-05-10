@@ -7,6 +7,7 @@ import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import type { Order } from "@/types/domain";
 import { STATUS_META } from "@/types/domain";
+import { formatTL } from "@/lib/format";
 
 /* ─────────────────────────────────────────────────────────────
  *  STORYBOARD
@@ -154,7 +155,7 @@ function SfxOrderReceipt({ order }: { order: Order }) {
                 <span style={{ ...MONO, fontSize: 18, color: "#2C2C2C", opacity: 0.4, marginLeft: 8 }}>× {item.quantity}</span>
               </div>
               <span style={{ ...MONO, fontSize: 22, fontWeight: 500, color: "#2C2C2C", flexShrink: 0 }}>
-                {(item.unit_price * item.quantity).toLocaleString("tr-TR")} TL
+                {formatTL(item.unit_price * item.quantity)}
               </span>
             </div>
           ))}
@@ -166,7 +167,7 @@ function SfxOrderReceipt({ order }: { order: Order }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "18px 0" }}>
           <span style={{ ...SANS, fontSize: 28, fontWeight: 700, color: "#2C2C2C" }}>Total</span>
           <span style={{ ...MONO, fontSize: 32, fontWeight: 700, color: "#D7263D" }}>
-            {order.total_amount.toLocaleString("tr-TR")} TL
+            {formatTL(order.total_amount)}
           </span>
         </div>
 
@@ -237,7 +238,7 @@ function PrintPaper({ order }: { order: Order }) {
               <span className="font-mono text-sfx-charcoal/50 ml-1 text-xs">× {item.quantity}</span>
             </div>
             <span className="font-mono text-sfx-charcoal flex-shrink-0">
-              {(item.unit_price * item.quantity).toLocaleString("tr-TR")} TL
+              {formatTL(item.unit_price * item.quantity)}
             </span>
           </div>
         ))}
@@ -246,7 +247,7 @@ function PrintPaper({ order }: { order: Order }) {
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-sfx-charcoal">Total</span>
           <span className="font-mono text-lg font-bold text-sfx-red">
-            {order.total_amount.toLocaleString("tr-TR")} TL
+            {formatTL(order.total_amount)}
           </span>
         </div>
       </div>
@@ -287,8 +288,8 @@ export function PrinterReceipt({ order }: { order: Order }) {
     gsap.set(el, { y: RECEIPT_INIT_Y });
     setPhase("printing");
     playPrintSound(T.feedDelay + T.feedDuration + 0.1);
-    const tl = gsap.timeline({ onComplete: () => setPhase("done") });
-    tl.to(el, { y: 0, duration: T.feedDuration, ease: "power2.out", delay: T.feedDelay });
+    const tl = gsap.timeline();
+    tl.to(el, { y: 0, duration: T.feedDuration, ease: "power2.out", delay: T.feedDelay, onComplete: () => setPhase("done") });
     tl.to(el, { y: T.floatY, duration: T.floatDuration, ease: "sine.inOut", yoyo: true, repeat: -1 }, ">0.2");
     tlRef.current = tl;
   }, []);
@@ -322,33 +323,41 @@ export function PrinterReceipt({ order }: { order: Order }) {
           position: "sticky", top: 0, zIndex: 30,
           background: "var(--background)",
           borderBottom: "1px solid color-mix(in oklch, var(--sidebar-border) 100%, transparent)",
-          padding: "20px 24px",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
+          height: 60,
+          display: "flex", alignItems: "center",
+          padding: "0 24px",
         }}>
-          <div>
-            <Link
-              href="/orders"
-              style={{
-                fontFamily: "var(--font-geist-sans, 'Inter', system-ui, sans-serif)",
-                fontSize: 13, color: "var(--muted-foreground)",
-                textDecoration: "none", letterSpacing: "-0.084px",
-              }}
-            >
-              ← Back to orders
-            </Link>
-            <p style={{
-              fontFamily: "var(--font-geist-mono, 'ui-monospace', monospace)",
-              fontSize: 12, color: "var(--muted-foreground)", marginTop: 4, marginBottom: 0,
-            }}>
-              {order.seq_number}
-            </p>
-          </div>
+          {/* Left: Back to orders */}
+          <Link
+            href="/orders"
+            style={{
+              fontFamily: "var(--font-geist-sans, 'Inter', system-ui, sans-serif)",
+              fontSize: 13, color: "var(--muted-foreground)",
+              textDecoration: "none", letterSpacing: "-0.084px",
+              flexShrink: 0,
+            }}
+          >
+            ← Back to orders
+          </Link>
+
+          {/* Centre: seq number — absolutely positioned so it's always centred regardless of button widths */}
+          <span style={{
+            position: "absolute", left: "50%", transform: "translateX(-50%)",
+            fontFamily: "var(--font-geist-mono, 'ui-monospace', monospace)",
+            fontSize: 13, fontWeight: 600, color: "var(--foreground)",
+            pointerEvents: "none",
+          }}>
+            {order.seq_number}
+          </span>
+
+          {/* Right: Print button */}
           <motion.button
             onClick={() => window.print()}
             disabled={phase !== "done"}
             whileHover={phase === "done" ? { scale: 1.04 } : {}}
             whileTap={phase === "done" ? { scale: 0.96 } : {}}
             style={{
+              marginLeft: "auto",
               fontFamily: "var(--font-geist-sans, 'Inter', system-ui, sans-serif)",
               background: phase === "done" ? "#D7263D" : "var(--muted)",
               border: "none", borderRadius: 8, padding: "8px 20px",
@@ -356,6 +365,7 @@ export function PrinterReceipt({ order }: { order: Order }) {
               color: phase === "done" ? "white" : "var(--muted-foreground)",
               cursor: phase === "done" ? "pointer" : "not-allowed",
               transition: "background 0.3s, color 0.3s",
+              flexShrink: 0,
             }}
           >
             {phase === "printing" ? "Printing…" : "Print"}

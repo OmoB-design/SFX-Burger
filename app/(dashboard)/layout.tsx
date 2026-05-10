@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Sidebar } from "@/components/shared/Sidebar";
+import { AppSidebar } from "@/components/shared/Sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import type { UserRole } from "@/types/domain";
 
 export default async function DashboardLayout({
@@ -23,15 +24,18 @@ export default async function DashboardLayout({
   if (!profile) redirect("/login");
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden print:block print:h-auto print:overflow-visible">
-      <Sidebar
+    <SidebarProvider
+      style={{ "--sidebar-width": "17.5rem" } as React.CSSProperties}
+      className="h-screen overflow-hidden print:block print:h-auto print:overflow-visible"
+    >
+      <AppSidebar
         role={profile.role}
         fullName={profile.full_name}
         email={user.email ?? ""}
       />
-      <main className="flex-1 overflow-y-auto print:overflow-visible">
+      <SidebarInset className="overflow-y-auto print:overflow-visible">
         {children}
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

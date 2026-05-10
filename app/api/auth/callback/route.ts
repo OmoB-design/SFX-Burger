@@ -16,8 +16,15 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error && data.user) {
-      const role = data.user.user_metadata?.role as UserRole | undefined;
-      const home = ROLE_HOME[role ?? "staff"] ?? "/orders";
+      // Read live role from profiles — don't trust JWT user_metadata
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      const role = (profileData as { role: UserRole } | null)?.role ?? "staff";
+      const home = ROLE_HOME[role] ?? "/orders";
       return NextResponse.redirect(new URL(home, origin));
     }
   }

@@ -1,15 +1,15 @@
 import { z } from "zod";
 
 export const cartItemSchema = z.object({
-  menuItemId: z.string().uuid(),
-  name: z.string(),
-  unitPrice: z.number().positive(),
-  quantity: z.number().int().min(1),
+  menuItemId: z.string().min(1),
+  name: z.string().min(1),
+  unitPrice: z.coerce.number().positive(),
+  quantity: z.coerce.number().int().min(1),
 });
 
 // Client-side customer info fields (used with react-hook-form)
 export const customerInfoSchema = z.object({
-  customer_name: z.string().min(1, "Customer name is required"),
+  customer_name: z.string().trim().min(1, "Customer name is required"),
   customer_phone: z.string().optional(),
   fulfillment_type: z.enum(["pickup", "delivery"] as const),
   delivery_address: z.string().optional(),
@@ -37,7 +37,7 @@ export type SingleOrderInput = z.infer<typeof singleOrderSchema>;
 // ── Bulk order schemas ─────────────────────────────────────────────────
 
 export const bulkCustomerInfoSchema = z.object({
-  customer_name: z.string().min(1, "Customer name is required"),
+  customer_name: z.string().trim().min(1, "Customer name is required"),
   customer_phone: z.string().optional(),
   scheduled_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Select a valid date"),
   fulfillment_type: z.enum(["pickup", "delivery"] as const),

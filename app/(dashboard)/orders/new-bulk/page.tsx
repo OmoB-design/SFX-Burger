@@ -34,19 +34,14 @@ export default async function NewBulkOrderPage() {
   return (
     <div>
       {/* Sticky header with bottom stroke */}
-      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 py-5 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 h-[60px] flex items-center gap-3">
         <Link
           href="/orders"
           className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
         </Link>
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">New Bulk Order</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Pre-scheduled — fulfilled on the selected Saturday
-          </p>
-        </div>
+        <h1 className="text-2xl font-semibold text-foreground">New Bulk Order</h1>
       </div>
 
       {/* Content — 100px below header */}

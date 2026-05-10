@@ -7,7 +7,11 @@ import { OrdersTable } from "@/components/orders/OrdersTable";
 import type { Order } from "@/types/domain";
 import type { OrderRow, OrderItemRow } from "@/types/database.types";
 
-export default async function OrdersPage() {
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: { expand?: string };
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -24,11 +28,14 @@ export default async function OrdersPage() {
 
   const canPlaceOrder = ["admin", "staff"].includes(profile.role);
 
-  // Fetch all orders, newest first
-  const { data: ordersData, error } = await supabase
+  // Fetch the most recent 200 orders — keeps initial payload bounded at scale.
+  // Real-time subscription in OrdersTable handles live inserts on top of this set.
+  const PAGE_SIZE = 200;
+  const { data: ordersData, count: totalCount, error } = await supabase
     .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .limit(PAGE_SIZE);
 
   if (error) console.error("[OrdersPage] fetch error", error);
 
@@ -55,13 +62,8 @@ export default async function OrdersPage() {
   return (
     <div>
       {/* Sticky header */}
-      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 py-5 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Orders</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {seedOrders.length} order{seedOrders.length !== 1 ? "s" : ""} total
-          </p>
-        </div>
+      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 h-[60px] flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-foreground">Orders</h1>
 
         {canPlaceOrder && (
           <div className="flex gap-2">
@@ -70,20 +72,26 @@ export default async function OrdersPage() {
               className={buttonVariants({ className: "gap-2 bg-sfx-red hover:bg-sfx-red/90 text-white" })}
             >
               <Plus className="h-4 w-4" />
-              Single order
+              {/* Show abbreviated label at 320px to prevent header overflow */}
+              <span>Single<span className="hidden sm:inline"> order</span></span>
             </Link>
             <Link
               href="/orders/new-bulk"
               className={buttonVariants({ variant: "outline", className: "gap-2" })}
             >
               <Plus className="h-4 w-4" />
-              Bulk order
+              <span>Bulk<span className="hidden sm:inline"> order</span></span>
             </Link>
           </div>
         )}
       </div>
 
-      <OrdersTable seedOrders={seedOrders} userRole={profile.role} />
+      <OrdersTable
+        seedOrders={seedOrders}
+        totalCount={totalCount ?? orderRows.length}
+        userRole={profile.role}
+        initialExpandId={searchParams.expand}
+      />
     </div>
   );
 }

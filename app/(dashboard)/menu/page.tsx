@@ -31,13 +31,8 @@ export default async function MenuPage() {
   return (
     <div>
       {/* Sticky header with bottom stroke */}
-      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 py-5 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Menu</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {items?.length ?? 0} items across all categories
-          </p>
-        </div>
+      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 h-[60px] flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-foreground">Menu</h1>
         <MenuItemDialog
           trigger={
             <Button className="gap-2 bg-sfx-red hover:bg-sfx-red/90 text-white">

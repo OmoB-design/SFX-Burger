@@ -33,5 +33,5 @@ export async function updateSession(request: NextRequest) {
   // Refresh session — do not remove, required for Server Components
   const { data: { user } } = await supabase.auth.getUser();
 
-  return { supabaseResponse, user };
+  return { supabaseResponse, user, supabase };
 }

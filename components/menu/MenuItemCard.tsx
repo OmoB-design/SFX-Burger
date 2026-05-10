@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { MenuItemDialog } from "@/components/menu/MenuItemDialog";
 import { deleteMenuItemAction, toggleMenuItemAction } from "@/lib/actions/menu";
+import { formatTL } from "@/lib/format";
 import type { MenuItem } from "@/types/domain";
 
 interface MenuItemCardProps {
@@ -52,7 +53,7 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
             {item.name}
           </p>
           <p className="text-xs font-mono text-sfx-amber mt-0.5">
-            {item.price.toLocaleString("tr-TR")} TL
+            {formatTL(item.price)}
           </p>
         </div>
 

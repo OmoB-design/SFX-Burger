@@ -13,6 +13,7 @@ import Link from "next/link";
 import type { Order, OrderStatus } from "@/types/domain";
 import type { OrderRow, OrderItemRow } from "@/types/database.types";
 import { STATUS_META } from "@/types/domain";
+import { formatTL } from "@/lib/format";
 
 const STATUS_FILTERS: { label: string; value: OrderStatus | "all" }[] = [
   { label: "All",       value: "all"       },
@@ -25,15 +26,29 @@ const STATUS_FILTERS: { label: string; value: OrderStatus | "all" }[] = [
 interface OrdersTableProps {
   seedOrders: Order[];
   userRole: string;
+  initialExpandId?: string;
+  totalCount?: number;
 }
 
-export function OrdersTable({ seedOrders, userRole }: OrdersTableProps) {
+export function OrdersTable({ seedOrders, userRole, initialExpandId, totalCount }: OrdersTableProps) {
   const [orders,      setOrders]      = useState<Order[]>(seedOrders);
   const [search,      setSearch]      = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [typeFilter,  setTypeFilter]  = useState<"all" | "single" | "bulk">("all");
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
+    initialExpandId ? new Set([initialExpandId]) : new Set()
+  );
   const [pendingIds,  setPendingIds]  = useState<Set<string>>(new Set());
+
+  // Scroll the pre-expanded order into view on first render
+  useEffect(() => {
+    if (!initialExpandId) return;
+    const timer = setTimeout(() => {
+      document.getElementById(`order-row-${initialExpandId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [initialExpandId]);
 
   const isAdmin    = userRole === "admin";
   const canDeliver = ["admin", "staff"].includes(userRole);
@@ -95,7 +110,7 @@ export function OrdersTable({ seedOrders, userRole }: OrdersTableProps) {
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
   };
@@ -188,7 +203,7 @@ export function OrdersTable({ seedOrders, userRole }: OrdersTableProps) {
               const sm         = STATUS_META[order.status];
 
               return (
-                <div key={order.id}>
+                <div key={order.id} id={`order-row-${order.id}`}>
                   {/* Row */}
                   <div
                     className="px-6 py-3 flex items-center gap-3 cursor-pointer hover:bg-muted/30 transition-colors sm:grid sm:grid-cols-[16px_1fr_1fr_148px_110px_96px_148px]"
@@ -237,7 +252,7 @@ export function OrdersTable({ seedOrders, userRole }: OrdersTableProps) {
 
                     {/* Total */}
                     <span className="hidden sm:block font-mono text-sm font-semibold text-foreground whitespace-nowrap">
-                      {order.total_amount.toLocaleString("tr-TR")} TL
+                      {formatTL(order.total_amount)}
                     </span>
 
                     {/* Actions — stop propagation so clicks don't toggle expand */}
@@ -317,7 +332,7 @@ export function OrdersTable({ seedOrders, userRole }: OrdersTableProps) {
                               <span className="font-mono text-muted-foreground ml-1.5 text-xs">×{item.quantity}</span>
                             </span>
                             <span className="font-mono text-foreground flex-shrink-0">
-                              {(item.unit_price * item.quantity).toLocaleString("tr-TR")} TL
+                              {formatTL(item.unit_price * item.quantity)}
                             </span>
                           </div>
                         ))}
@@ -337,7 +352,7 @@ export function OrdersTable({ seedOrders, userRole }: OrdersTableProps) {
                             )}
                           </span>
                           <span className="font-mono font-semibold text-sm text-foreground">
-                            {order.total_amount.toLocaleString("tr-TR")} TL
+                            {formatTL(order.total_amount)}
                           </span>
                         </div>
                       </div>
@@ -349,8 +364,13 @@ export function OrdersTable({ seedOrders, userRole }: OrdersTableProps) {
           </div>
 
           {/* Footer count */}
-          <div className="px-6 py-3 border-t border-sidebar-border text-xs text-muted-foreground">
-            Showing {filtered.length} of {orders.length} order{orders.length !== 1 ? "s" : ""}
+          <div className="px-6 py-3 border-t border-sidebar-border text-xs text-muted-foreground flex flex-wrap gap-x-1">
+            <span>Showing {filtered.length} of {orders.length} order{orders.length !== 1 ? "s" : ""}</span>
+            {totalCount !== undefined && totalCount > orders.length && (
+              <span className="text-muted-foreground/70">
+                · {totalCount - orders.length} older orders not shown — use Reports for historical data.
+              </span>
+            )}
           </div>
         </div>
       )}

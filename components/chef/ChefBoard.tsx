@@ -78,11 +78,15 @@ export function ChefBoard({ seedOrders, today }: ChefBoardProps) {
             if (row.status === "delivered" || row.status === "cancelled") {
               // Remove from board once delivered or cancelled
               setOrders((prev) => prev.filter((o) => o.id !== row.id));
+              setNewIds((prev) => { const s = new Set(prev); s.delete(row.id); return s; });
             } else {
-              // Update status in place (e.g. placed → ready)
+              // Update status in place (e.g. placed → ready); clear new-flash
               setOrders((prev) =>
                 prev.map((o) => (o.id === row.id ? { ...o, ...row } : o))
               );
+              if (row.status === "ready") {
+                setNewIds((prev) => { const s = new Set(prev); s.delete(row.id); return s; });
+              }
             }
           }
         }
@@ -98,6 +102,7 @@ export function ChefBoard({ seedOrders, today }: ChefBoardProps) {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: "ready" as const } : o))
     );
+    setNewIds((prev) => { const s = new Set(prev); s.delete(orderId); return s; });
 
     const result = await markOrderReadyAction(orderId);
 

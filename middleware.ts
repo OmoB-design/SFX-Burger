@@ -21,7 +21,7 @@ const ROLE_ALLOWED: Record<string, string[]> = {
 };
 
 export async function middleware(request: NextRequest) {
-  const { supabaseResponse, user } = await updateSession(request);
+  const { supabaseResponse, user, supabase } = await updateSession(request);
   const pathname = request.nextUrl.pathname;
 
   const isDashboardRoute = DASHBOARD_PREFIX.some((p) => pathname.startsWith(p));
@@ -34,25 +34,35 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Authenticated user hitting /login → their home
-  if (user && isAuthRoute) {
-    const role = user.user_metadata?.role as string | undefined;
-    const home = ROLE_HOME[role ?? "staff"] ?? "/orders";
-    const url = request.nextUrl.clone();
-    url.pathname = home;
-    return NextResponse.redirect(url);
-  }
+  // Authenticated user on auth or dashboard routes — resolve live role from DB.
+  // We do NOT trust user_metadata.role: it is set at signup and never updated when
+  // an admin changes a profile's role. Reading from profiles gives the current role.
+  if (user && (isAuthRoute || isDashboardRoute)) {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-  // Authenticated user on a dashboard route — check role access
-  if (user && isDashboardRoute) {
-    const role = user.user_metadata?.role as string | undefined;
-    const allowed = ROLE_ALLOWED[role ?? "staff"] ?? ROLE_ALLOWED.staff;
-    const canAccess = allowed.some((p) => pathname.startsWith(p));
+    const role = (profileData as { role: string } | null)?.role ?? "staff";
 
-    if (!canAccess) {
+    // Authenticated user hitting /login → their home
+    if (isAuthRoute) {
       const url = request.nextUrl.clone();
-      url.pathname = ROLE_HOME[role ?? "staff"] ?? "/orders";
+      url.pathname = ROLE_HOME[role] ?? "/orders";
       return NextResponse.redirect(url);
+    }
+
+    // Authenticated user on a dashboard route — check role access
+    if (isDashboardRoute) {
+      const allowed = ROLE_ALLOWED[role] ?? ROLE_ALLOWED.staff;
+      const canAccess = allowed.some((p) => pathname.startsWith(p));
+
+      if (!canAccess) {
+        const url = request.nextUrl.clone();
+        url.pathname = ROLE_HOME[role] ?? "/orders";
+        return NextResponse.redirect(url);
+      }
     }
   }
 

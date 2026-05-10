@@ -7,6 +7,7 @@ import { Printer, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Order } from "@/types/domain";
 import { STATUS_META } from "@/types/domain";
+import { formatTL } from "@/lib/format";
 
 interface OrderReceiptProps {
   order: Order;
@@ -100,7 +101,7 @@ export function OrderReceipt({ order }: OrderReceiptProps) {
                   </span>
                 </div>
                 <span className="font-mono text-sfx-charcoal flex-shrink-0">
-                  {(item.unit_price * item.quantity).toLocaleString("tr-TR")} TL
+                  {formatTL(item.unit_price * item.quantity)}
                 </span>
               </div>
             ))}
@@ -111,7 +112,7 @@ export function OrderReceipt({ order }: OrderReceiptProps) {
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-sfx-charcoal">Total</span>
               <span className="font-mono text-lg font-bold text-sfx-red">
-                {order.total_amount.toLocaleString("tr-TR")} TL
+                {formatTL(order.total_amount)}
               </span>
             </div>
           </div>

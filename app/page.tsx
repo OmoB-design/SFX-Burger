@@ -14,6 +14,12 @@ export default async function RootPage() {
 
   if (!user) redirect("/login");
 
-  const role = user.user_metadata?.role as UserRole | undefined;
-  redirect(ROLE_HOME[role ?? "staff"] ?? "/orders");
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const role = (profileData as { role: UserRole } | null)?.role ?? "staff";
+  redirect(ROLE_HOME[role] ?? "/orders");
 }

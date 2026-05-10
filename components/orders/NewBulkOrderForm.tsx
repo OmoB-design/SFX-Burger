@@ -2,7 +2,6 @@
 
 import { useReducer, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { nextSaturday, format } from "date-fns";
@@ -25,9 +24,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { DatePicker } from "@/components/ui/date-picker";
 import { placeBulkOrderAction } from "@/lib/actions/orders";
-import { bulkCustomerInfoSchema, type BulkCustomerInfoValues } from "@/lib/schemas/order";
+import type { BulkCustomerInfoValues } from "@/lib/schemas/order";
 import { CATEGORY_META, type CartItem, type MenuItem, type MenuCategory } from "@/types/domain";
 import { cn } from "@/lib/utils";
+import { formatTL } from "@/lib/format";
 
 // ── Cart reducer ───────────────────────────────────────────────────────
 
@@ -98,7 +98,7 @@ export function NewBulkOrderForm({ menuItems }: NewBulkOrderFormProps) {
     control,
     formState: { errors },
   } = useForm<BulkCustomerInfoValues>({
-    resolver: zodResolver(bulkCustomerInfoSchema),
+    mode: "onChange",
     defaultValues: {
       customer_name: "",
       customer_phone: "",
@@ -148,15 +148,27 @@ export function NewBulkOrderForm({ menuItems }: NewBulkOrderFormProps) {
               <User className="h-3.5 w-3.5 text-muted-foreground" />
               Name <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="customer_name"
-              placeholder="e.g. Amara Johnson"
-              {...register("customer_name")}
-              aria-invalid={!!errors.customer_name}
+            <Controller
+              name="customer_name"
+              control={control}
+              rules={{
+                required: "Customer name is required",
+                validate: (v) => v.trim().length > 0 || "Customer name is required",
+              }}
+              render={({ field, fieldState }) => (
+                <>
+                  <Input
+                    id="customer_name"
+                    placeholder="e.g. Amara Johnson"
+                    {...field}
+                    aria-invalid={!!fieldState.error}
+                  />
+                  {fieldState.error && (
+                    <p className="text-xs text-destructive">{fieldState.error.message}</p>
+                  )}
+                </>
+              )}
             />
-            {errors.customer_name && (
-              <p className="text-xs text-destructive">{errors.customer_name.message}</p>
-            )}
           </div>
 
           {/* Phone */}
@@ -235,7 +247,12 @@ export function NewBulkOrderForm({ menuItems }: NewBulkOrderFormProps) {
             <Input
               id="delivery_address"
               placeholder="Street, neighbourhood, landmark…"
-              {...register("delivery_address")}
+              {...register("delivery_address", {
+                validate: (val, vals) =>
+                  vals.fulfillment_type !== "delivery" ||
+                  (val?.trim().length ?? 0) > 0 ||
+                  "Delivery address is required",
+              })}
               aria-invalid={!!errors.delivery_address}
             />
             {errors.delivery_address && (
@@ -291,7 +308,7 @@ export function NewBulkOrderForm({ menuItems }: NewBulkOrderFormProps) {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
                     <p className="text-xs font-mono text-sfx-amber mt-0.5">
-                      {item.price.toLocaleString("tr-TR")} TL
+                      {formatTL(item.price)}
                     </p>
                   </div>
 
@@ -359,12 +376,12 @@ export function NewBulkOrderForm({ menuItems }: NewBulkOrderFormProps) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
                   <p className="text-xs font-mono text-muted-foreground">
-                    {item.unitPrice.toLocaleString("tr-TR")} TL × {item.quantity}
+                    {formatTL(item.unitPrice)} × {item.quantity}
                   </p>
                 </div>
 
                 <p className="text-sm font-mono font-medium text-sfx-amber flex-shrink-0">
-                  {(item.unitPrice * item.quantity).toLocaleString("tr-TR")} TL
+                  {formatTL(item.unitPrice * item.quantity)}
                 </p>
 
                 <div className="flex items-center gap-1 flex-shrink-0">
@@ -398,7 +415,7 @@ export function NewBulkOrderForm({ menuItems }: NewBulkOrderFormProps) {
             <div className="flex items-center justify-between rounded-lg bg-muted px-3 py-2.5 mt-1">
               <span className="text-sm font-semibold text-foreground">Total</span>
               <span className="text-base font-mono font-bold text-sfx-red">
-                {cartTotal.toLocaleString("tr-TR")} TL
+                {formatTL(cartTotal)}
               </span>
             </div>
           </div>

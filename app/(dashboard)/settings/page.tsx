@@ -29,9 +29,8 @@ export default async function SettingsPage() {
   return (
     <div>
       {/* Sticky header with bottom stroke */}
-      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 py-5">
+      <div className="sticky top-0 z-10 bg-background border-b border-sidebar-border px-6 h-[60px] flex items-center">
         <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Your account details</p>
       </div>
 
       {/* Content — 100px below header */}

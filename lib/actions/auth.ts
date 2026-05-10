@@ -10,10 +10,6 @@ const ROLE_HOME: Record<UserRole, string> = {
   chef:  "/chef",
 };
 
-function roleHome(role: string | undefined): string {
-  return ROLE_HOME[role as UserRole] ?? "/orders";
-}
-
 export type LoginState = { error: string | null };
 
 export async function loginAction(
@@ -31,16 +27,21 @@ export async function loginAction(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error) {
+  if (error || !data.user) {
     return { error: "Invalid email or password. Please try again." };
   }
 
-  redirect(roleHome(data.user?.user_metadata?.role));
+  // Read live role from profiles — don't trust JWT user_metadata which is only set at signup
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
+
+  const role = (profileData as { role: UserRole } | null)?.role ?? "staff";
+  redirect(ROLE_HOME[role] ?? "/orders");
 }
 
 export async function logout() {
