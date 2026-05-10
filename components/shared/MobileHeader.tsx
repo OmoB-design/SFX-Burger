@@ -9,7 +9,10 @@ export function MobileHeader() {
   const { openMobile, setOpenMobile } = useSidebar();
 
   return (
-    <div className="sm:hidden sticky top-0 z-20 h-[60px] flex items-center justify-between px-4 bg-sidebar border-b border-sidebar-border print:hidden">
+    <div
+      className="sm:hidden sticky top-0 z-20 flex shrink-0 items-center justify-between px-4 bg-sidebar border-b border-sidebar-border print:hidden"
+      style={{ height: "60px" }}
+    >
 
       {/* Logo + wordmark */}
       <div className="flex items-center gap-2">
