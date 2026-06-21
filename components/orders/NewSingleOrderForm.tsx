@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -107,11 +107,23 @@ export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
 
   const fulfillmentType = watch("fulfillment_type");
 
-  const cartTotal = cart.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
-  const cartCount = cart.reduce((sum, i) => sum + i.quantity, 0);
+  const cartTotal = useMemo(
+    () => cart.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0),
+    [cart]
+  );
+  const cartCount = useMemo(
+    () => cart.reduce((sum, i) => sum + i.quantity, 0),
+    [cart]
+  );
 
-  const activeItems = menuItems.filter(
-    (m) => m.category === activeCategory && m.is_active
+  const activeItems = useMemo(
+    () => menuItems.filter((m) => m.category === activeCategory && m.is_active),
+    [menuItems, activeCategory]
+  );
+
+  const categoriesWithItems = useMemo(
+    () => new Set(menuItems.filter((m) => m.is_active).map((m) => m.category)),
+    [menuItems]
   );
 
   async function onSubmit(data: CustomerInfoValues) {
@@ -241,8 +253,7 @@ export function NewSingleOrderForm({ menuItems }: NewSingleOrderFormProps) {
         <div className="flex gap-1 flex-wrap">
           {CATEGORY_ORDER.map((cat) => {
             const meta = CATEGORY_META[cat];
-            const hasItems = menuItems.some((m) => m.category === cat && m.is_active);
-            if (!hasItems) return null;
+            if (!categoriesWithItems.has(cat)) return null;
             return (
               <button
                 key={cat}
